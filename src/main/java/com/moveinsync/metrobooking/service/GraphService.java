@@ -38,7 +38,7 @@ public class GraphService {
                             stop.getId(),
                             stop.getName(),
                             stop.getCode(),
-                            stop.isInterchange()
+                            stop.getIsInterchange()
                     );
                     graph.addNode(node);
                 }

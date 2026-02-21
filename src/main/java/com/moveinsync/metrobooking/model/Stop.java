@@ -21,8 +21,8 @@ public class Stop {
     @Column(nullable = false, unique = true)
     private String code;
 
-    private boolean isInterchange;
+    private Boolean isInterchange;
 
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
 }
