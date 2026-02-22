@@ -16,7 +16,7 @@ async function login() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     try {
-        const data = await apiCall('/api/auth/login', 'POST', { email, password });
+        const data = await apiCall('/auth/login', 'POST', { email, password });
         if (data.token) {
             setToken(data.token);
             setUser({ email: data.email, name: data.name, role: data.role });
@@ -33,7 +33,7 @@ async function register() {
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
     try {
-        const data = await apiCall('/api/auth/register', 'POST', { email, password });
+        const data = await apiCall('/auth/register', 'POST', { email, password });
         if (data.token) {
             setToken(data.token);
             setUser({ email: data.email, name: data.name, role: data.role });
