@@ -13,7 +13,6 @@ async function loadStops() {
         const sourceSelect = document.getElementById('source-stop');
         const destSelect = document.getElementById('dest-stop');
 
-        // Clear existing options except placeholder
         sourceSelect.innerHTML = '<option value="">Select source station...</option>';
         destSelect.innerHTML = '<option value="">Select destination station...</option>';
 
@@ -52,7 +51,6 @@ async function bookRide() {
     const sourceStopId = document.getElementById('source-stop').value;
     const destStopId = document.getElementById('dest-stop').value;
 
-    // Validate
     if (!sourceStopId || !destStopId) {
         alert('Please select both source and destination!');
         return;
@@ -63,13 +61,12 @@ async function bookRide() {
         return;
     }
 
-    // Show loading
     showLoading(true);
     hideResult();
     hideError();
 
     try {
-        const data = await apiCall('/api/bookings', 'POST', {
+        const data = await apiCall('/bookings', 'POST', {  // ✅ Fixed - removed /api prefix
             sourceStopId: parseInt(sourceStopId),
             destinationStopId: parseInt(destStopId)
         });
@@ -90,6 +87,7 @@ function showResult(data) {
     localStorage.setItem('lastBooking', JSON.stringify(data));
     window.location.href = 'result.html';
 }
+
 function buildTimeline(path) {
     const timeline = document.getElementById('route-timeline');
     timeline.innerHTML = '';
