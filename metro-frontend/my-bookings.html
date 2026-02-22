@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroBook — My Bookings</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 20px;
+            padding: 35px 40px;
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .bookings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 16px;
+        }
+
+        .booking-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .booking-card:hover {
+            border-color: rgba(0,212,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .booking-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .booking-ref-number {
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: var(--accent);
+            background: rgba(0,212,255,0.08);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .booking-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .status-CONFIRMED {
+            background: rgba(0,212,255,0.1);
+            color: var(--accent);
+        }
+
+        .status-CANCELLED {
+            background: rgba(255,59,92,0.1);
+            color: var(--red);
+        }
+
+        .status-USED {
+            background: rgba(255,255,255,0.05);
+            color: var(--muted);
+        }
+
+        .booking-route {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .route-stop {
+            flex: 1;
+        }
+
+        .route-stop-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+
+        .route-stop-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .route-arrow-big {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        .booking-stats {
+            display: flex;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .booking-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .booking-stat-value {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--accent);
+        }
+
+        .booking-stat-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        .booking-date {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="home.html" class="navbar-brand">🚇 MetroBook</a>
+    <div class="nav-links">
+        <a href="home.html">🏠 Home</a>
+        <a href="booking.html">🎫 Book a Ride</a>
+        <a href="my-bookings.html" class="active">📋 My Bookings</a>
+        <button class="btn-logout" onclick="logout()">Logout →</button>
+    </div>
+</nav>
+
+<div class="page-container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h2>📋 My Bookings</h2>
+        <p>All your metro ride bookings in one place</p>
+    </div>
+
+    <!-- Content -->
+    <div id="bookings-container">
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading your bookings...</p>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/utils.js"></script>
+<script>
+    checkAuth();
+
+    async function loadBookings() {
+        try {
+            const bookings = await apiCall('/api/bookings/my-bookings');
+            const container = document.getElementById('bookings-container');
+
+            if (!bookings || bookings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎫</div>
+                        <h3>No bookings yet!</h3>
+                        <p>You haven't booked any metro rides yet.</p>
+                        <a href="booking.html">
+                            <button class="btn-book">Book Your First Ride</button>
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="bookings-grid">
+                    ${bookings.map(b => `
+                        <div class="booking-card">
+                            <div class="booking-card-header">
+                                <span class="booking-ref-number">${b.bookingReference}</span>
+                                <span class="booking-status status-${b.status}">${b.status}</span>
+                            </div>
+
+                            <div class="booking-route">
+                                <div class="route-stop">
+                                    <div class="route-stop-label">🟢 From</div>
+                                    <div class="route-stop-name">${b.sourceStop.name}</div>
+                                </div>
+                                <div class="route-arrow-big">→</div>
+                                <div class="route-stop">
+                                    <div class="route-stop-label">🔴 To</div>
+                                    <div class="route-stop-name">${b.destinationStop.name}</div>
+                                </div>
+                            </div>
+
+                            <div class="booking-stats">
+                                <div class="booking-stat">
+                                    <span class="booking-stat-value">${b.totalStops}</span>
+                                    <span class="booking-stat-label">Stops</span>
+                                </div>
+                                <div class="booking-stat">
+                                    <span class="booking-stat-value">${Math.round(b.estimatedTime)}</span>
+                                    <span class="booking-stat-label">Minutes</span>
+                                </div>
+                                <div class="booking-stat">
+                                    <span class="booking-stat-value">${b.totalInterchanges}</span>
+                                    <span class="booking-stat-label">Interchanges</span>
+                                </div>
+                            </div>
+
+                            <div class="booking-date">
+                                🕐 ${new Date(b.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+        } catch(err) {
+            console.error('Error loading bookings:', err);
+            document.getElementById('bookings-container').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <h3>Something went wrong</h3>
+                    <p>Could not load your bookings. Please try again.</p>
+                </div>
+            `;
+        }
+    }
+
+    loadBookings();
+</script>
+</body>
+</html>

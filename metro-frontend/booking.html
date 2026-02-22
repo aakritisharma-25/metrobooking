@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroBook — Book a Ride</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        .booking-hero {
+            background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 20px;
+            padding: 35px 40px;
+            margin-bottom: 24px;
+        }
+
+        .booking-hero h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .booking-hero p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .booking-form-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 24px;
+        }
+
+        .stops-grid {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            gap: 16px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .swap-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 50%;
+            color: var(--accent);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            margin-bottom: 2px;
+        }
+
+        .swap-btn:hover {
+            background: rgba(0,212,255,0.2);
+            transform: rotate(180deg);
+        }
+
+        .btn-search-full {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s, transform 0.2s;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-search-full:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-search-full:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Result Section */
+        .result-section {
+            display: none;
+        }
+
+        .result-section.visible {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-header h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .stats-pills {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pill-blue {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.2);
+            color: var(--accent);
+        }
+
+        .pill-purple {
+            background: rgba(124,58,237,0.1);
+            border: 1px solid rgba(124,58,237,0.2);
+            color: #a78bfa;
+        }
+
+        .pill-red {
+            background: rgba(255,59,92,0.1);
+            border: 1px solid rgba(255,59,92,0.2);
+            color: var(--red);
+        }
+
+        /* Route Timeline */
+        .route-timeline {
+            position: relative;
+            padding: 10px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .timeline-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 3px solid;
+            background: var(--bg);
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .timeline-line {
+            width: 3px;
+            flex: 1;
+            min-height: 30px;
+            margin-top: 2px;
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding-bottom: 8px;
+        }
+
+        .timeline-stop-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .timeline-meta {
+            font-size: 0.78rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .interchange-tag {
+            background: rgba(255,59,92,0.15);
+            color: var(--red);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        /* QR Box */
+        .qr-section {
+            background: var(--surface2);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .qr-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .qr-subtitle {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-bottom: 16px;
+        }
+
+        .qr-code-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            color: var(--accent);
+            background: rgba(0,212,255,0.04);
+            border: 1px solid rgba(0,212,255,0.1);
+            padding: 16px;
+            border-radius: 10px;
+            word-break: break-all;
+            line-height: 1.8;
+            letter-spacing: 0.05em;
+        }
+
+        .booking-ref {
+            margin-top: 12px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .booking-ref span {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Error */
+        .error-card {
+            background: rgba(255,59,92,0.08);
+            border: 1px solid rgba(255,59,92,0.2);
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-card.visible {
+            display: block;
+        }
+
+        .error-card h3 {
+            color: var(--red);
+            font-family: 'Syne', sans-serif;
+            margin-bottom: 8px;
+        }
+
+        .error-card p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+            display: none;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .map-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="home.html" class="navbar-brand">🚇 MetroBook</a>
+    <div class="nav-links">
+        <a href="home.html">🏠 Home</a>
+        <a href="booking.html" class="active">🎫 Book a Ride</a>
+        <a href="my-bookings.html">📋 My Bookings</a>
+        <button class="btn-logout" onclick="logout()">Logout →</button>
+    </div>
+</nav>
+
+<div class="page-container">
+
+    <!-- Hero -->
+    <div class="booking-hero">
+        <h2>🎫 Book Your Ride</h2>
+        <p>Select your source and destination — we'll find the optimal route instantly using Dijkstra's algorithm</p>
+    </div>
+
+    <!-- Booking Form -->
+    <div class="booking-form-card">
+        <div class="card-title">Select Stops</div>
+
+        <div class="stops-grid">
+            <div class="form-group">
+                <label>🟢 From (Source)</label>
+                <select id="source-stop">
+                    <option value="">Select source station...</option>
+                </select>
+            </div>
+
+            <div style="display:flex; justify-content:center;">
+                <button class="swap-btn" onclick="swapStops()" title="Swap stops">⇄</button>
+            </div>
+
+            <div class="form-group">
+                <label>🔴 To (Destination)</label>
+                <select id="dest-stop">
+                    <option value="">Select destination station...</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-search-full" onclick="bookRide()" id="book-btn">
+            🔍 Find Route & Book
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Finding optimal route using Dijkstra's algorithm...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-card" id="error-card">
+        <h3>🚫 No Route Found</h3>
+        <p id="error-msg">No connecting path exists between selected stations.</p>
+    </div>
+
+    <!-- Result -->
+    <div class="result-section" id="result-section">
+
+        <!-- Map -->
+        <div class="map-card">
+            <div class="card-title">🗺️ Route Map</div>
+            <div id="booking-map"></div>
+        </div>
+
+        <!-- Route Details -->
+        <div class="booking-form-card">
+            <div class="result-header">
+                <h3>📍 Route Details</h3>
+            </div>
+
+            <!-- Stats Pills -->
+            <div class="stats-pills">
+                <div class="pill pill-blue">🚉 <span id="total-stops">0</span> Stops</div>
+                <div class="pill pill-purple">⏱️ <span id="total-time">0</span> mins</div>
+                <div class="pill pill-red">🔄 <span id="total-interchanges">0</span> Interchanges</div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="route-timeline" id="route-timeline"></div>
+
+            <!-- QR Section -->
+            <div class="qr-section">
+                <div class="qr-title">🎫 Your Booking QR</div>
+                <div class="qr-subtitle">Show this at the station gate</div>
+                <div class="qr-code-display" id="qr-string"></div>
+                <div class="booking-ref">
+                    Booking Reference: <span id="booking-ref"></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/map.js"></script>
+<script src="js/booking.js"></script>
+</body>
+</html>

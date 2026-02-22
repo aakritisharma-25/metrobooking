@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroBook — Home</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+            border: 1px solid rgba(0,212,255,0.12);
+            border-radius: 20px;
+            padding: 50px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+            right: -50px;
+            top: -50px;
+        }
+
+        .hero-text h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        
+        .hero-text h2 span {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            color: var(--muted);
+            font-size: 1rem;
+            margin-bottom: 25px;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-outline {
+            padding: 13px 24px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text);
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0,212,255,0.2);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,212,255,0.08);
+            border-radius: 12px;
+        }
+
+        .stat-info h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .stat-info p {
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        /* Metro Images */
+        .metro-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .gallery-item {
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+            height: 180px;
+            border: 1px solid var(--border);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Lines Overview */
+        .lines-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .line-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s;
+        }
+
+        .line-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .line-color-bar {
+            width: 6px;
+            height: 50px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .line-info h4 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .line-info p {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .line-stops {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .line-stops span {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .line-stops p {
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
+        /* Map Legend */
+        .map-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .legend-line {
+            width: 28px;
+            height: 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="home.html" class="navbar-brand">🚇 MetroBook</a>
+    <div class="nav-links">
+        <a href="home.html" class="active">🏠 Home</a>
+        <a href="booking.html">🎫 Book a Ride</a>
+        <a href="my-bookings.html">📋 My Bookings</a>
+        <button class="btn-logout" onclick="logout()">Logout →</button>
+    </div>
+</nav>
+
+<div class="page-container">
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-text">
+            <h2>Hello, <span id="user-name">Traveller</span>! 👋<br>Where to today?</h2>
+            <p>Book your metro ride in seconds. We'll find the fastest route with smart interchange handling.</p>
+            <div class="hero-actions">
+                <a href="booking.html" class="btn-book">🎫 Book a Ride</a>
+                <a href="my-bookings.html" class="btn-outline">View Bookings</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">🚉</div>
+            <div class="stat-info">
+                <h3>15</h3>
+                <p>Metro Stations</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🚇</div>
+            <div class="stat-info">
+                <h3>4</h3>
+                <p>Metro Lines</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-info">
+                <h3>7</h3>
+                <p>Interchange Stations</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-info">
+                <h3>2min</h3>
+                <p>Avg Between Stops</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metro Gallery -->
+    <div class="card">
+        <div class="card-title">📸 Delhi Metro</div>
+        <div class="metro-gallery">
+            <div class="gallery-item">
+                <img src="https://preview.redd.it/does-anyone-miss-the-old-delhi-metro-aesthetic-v0-td2glit1z51d1.png?auto=webp&s=8d062bf1209485f2ce01aa0ab6ab5a748d7e0271" alt="Delhi Metro"/>
+                <div class="gallery-overlay">Delhi Metro Network</div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://preview.redd.it/rajiv-chowk-metro-station-v0-jhugmtgnej1c1.jpg?width=1080&crop=smart&auto=webp&s=3446466153b27e1955dc9bd60b2d76f9f5d6d42d" alt="Rajiv Chowk"/>
+                <div class="gallery-overlay">Rajiv Chowk — Busiest Station</div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://worldofdelhi.com/wp-content/uploads/2025/10/ChatGPT-Image-12-%E0%A4%85%E0%A4%95%E0%A5%8D%E0%A4%A4%E0%A5%82%E0%A5%B0-2025-09_37_11-am.png" alt="Blue Line"/>
+                <div class="gallery-overlay">Blue Line</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metro Lines Overview -->
+    <div class="card">
+        <div class="card-title">🚇 Metro Lines</div>
+        <div class="lines-grid">
+            <div class="line-card">
+                <div class="line-color-bar" style="background:#FFD700"></div>
+                <div class="line-info">
+                    <h4>Yellow Line</h4>
+                    <p>Samaypur Badli → Huda City Centre</p>
+                </div>
+                <div class="line-stops">
+                    <span>5</span>
+                    <p>stops</p>
+                </div>
+            </div>
+            <div class="line-card">
+                <div class="line-color-bar" style="background:#1E90FF"></div>
+                <div class="line-info">
+                    <h4>Blue Line</h4>
+                    <p>Dwarka Sector 21 → Vaishali</p>
+                </div>
+                <div class="line-stops">
+                    <span>4</span>
+                    <p>stops</p>
+                </div>
+            </div>
+            <div class="line-card">
+                <div class="line-color-bar" style="background:#FF69B4"></div>
+                <div class="line-info">
+                    <h4>Pink Line</h4>
+                    <p>New Delhi → Lajpat Nagar</p>
+                </div>
+                <div class="line-stops">
+                    <span>5</span>
+                    <p>stops</p>
+                </div>
+            </div>
+            <div class="line-card">
+                <div class="line-color-bar" style="background:#FF8C00"></div>
+                <div class="line-info">
+                    <h4>Orange Line</h4>
+                    <p>Dwarka → IGI Airport → Chandni Chowk</p>
+                </div>
+                <div class="line-stops">
+                    <span>3</span>
+                    <p>stops</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metro Map -->
+    <div class="map-section">
+        <div class="map-header">
+            <div class="card-title" style="margin-bottom:0">🗺️ Live Metro Network Map</div>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#FFD700"></div> Yellow
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#1E90FF"></div> Blue
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#FF69B4"></div> Pink
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#FF8C00"></div> Orange
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#e94560; height:10px; width:10px; border-radius:50%"></div> Interchange
+                </div>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/map.js"></script>
+<script>
+    checkAuth();
+    const user = getUser();
+    document.getElementById('user-name').textContent = user.name || 'Traveller';
+    initDashboardMap();
+</script>
+</body>
+</html>
