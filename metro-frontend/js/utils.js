@@ -29,7 +29,7 @@ function checkAuth() {
 }
 
 async function apiCall(endpoint, method = 'GET', body = null) {
-    const headers = { 'Content-Type': 'application/json };
+    const headers = { 'Content-Type': 'application/json'};
     const publicRoutes = ['/auth/login', '/auth/register'];
     
     if (getToken() && !publicRoutes.includes(endpoint)) {
