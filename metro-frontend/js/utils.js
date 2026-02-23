@@ -29,17 +29,26 @@ function checkAuth() {
 }
 
 async function apiCall(endpoint, method = 'GET', body = null) {
-    const headers = {
-        'Content-Type': 'application/json'
-    };
-
-    if (getToken()) {
+    const headers = { 'Content-Type': 'application/json };
+    const publicRoutes = ['/auth/login', '/auth/register'];
+    
+    if (getToken() && !publicRoutes.includes(endpoint)) {
         headers['Authorization'] = `Bearer ${getToken()}`;
     }
-
+    
     const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
-
+    
     const response = await fetch(`${API_BASE}${endpoint}`, options);
+    
+    // If token expired, clear and redirect to login
+    if (response.status === 401 || response.status === 403) {
+        if (!publicRoutes.includes(endpoint)) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    }
+    
     return response.json();
 }
