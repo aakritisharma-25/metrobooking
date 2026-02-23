@@ -225,7 +225,7 @@
 
     async function loadBookings() {
         try {
-            const bookings = await apiCall('/api/bookings/my-bookings');
+            const bookings = await apiCall('/bookings/my-bookings');
             const container = document.getElementById('bookings-container');
 
             if (!bookings || bookings.length === 0) {
