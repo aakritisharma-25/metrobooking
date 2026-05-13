@@ -1,4 +1,4 @@
-const API_BASE = 'https://metrobooking.onrender.com/api';
+const API_BASE = "https://metrobooking-backend.onrender.com";
 
 function getToken() {
     return localStorage.getItem('token');
