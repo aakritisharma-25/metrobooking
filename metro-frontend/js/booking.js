@@ -1,7 +1,7 @@
 // Load stops into dropdowns
 async function loadStops() {
     try {
-        const response = await fetch("https://metrobooking.onrender.com/api/stops", {
+        const response = await fetch("https://metrobooking-backend.onrender.com/api/stops", {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
