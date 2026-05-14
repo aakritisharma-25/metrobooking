@@ -43,19 +43,19 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Allow preflight requests
+                        // Allow OPTIONS requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public auth endpoints
+                        // Public auth routes
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // Public endpoints
+                        // Public APIs
                         .requestMatchers("/api/stops").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/health").permitAll()
 
-                        // Everything else requires auth
+                        // Everything else secured
                         .anyRequest().authenticated()
                 )
 
@@ -65,8 +65,10 @@ public class SecurityConfig {
 
                 .authenticationProvider(authenticationProvider())
 
-                .addFilterBefore(jwtAuthFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(
+                        jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
@@ -107,9 +109,7 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider() {
 
         DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider();
-
-        provider.setUserDetailsService(userDetailsService);
+                new DaoAuthenticationProvider(userDetailsService);
 
         provider.setPasswordEncoder(passwordEncoder());
 
